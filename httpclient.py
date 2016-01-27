@@ -33,10 +33,16 @@ class HTTPRequest(object):
         self.body = body
 
 class HTTPClient(object):
+    
+    def __init__():
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        
     #def get_host_port(self,url):
 
-    def connect(self, host, port):
+    def connect(self, host, port=12345):
         # use sockets!
+        self.socket.connect((host, port))
+        
         return None
 
     def get_code(self, data):
@@ -63,6 +69,13 @@ class HTTPClient(object):
     def GET(self, url, args=None):
         code = 500
         body = ""
+
+        self.connect(url)
+        # format request
+        self.sock.sendall("")
+
+        # print request output
+        
         return HTTPRequest(code, body)
 
     def POST(self, url, args=None):
