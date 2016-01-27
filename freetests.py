@@ -201,6 +201,7 @@ class TestHTTPClient(unittest.TestCase):
         if (TestHTTPClient.httpd!=None):
             print "HTTP Shutdown in tearDown\n"
             TestHTTPClient.httpd.shutdown()
+            TestHTTPClient.httpd.server_close()
             time.sleep(1)
 
 def test_test_webserver():

@@ -27,7 +27,7 @@ import urllib
 def help():
     print "httpclient.py [GET/POST] [URL]\n"
 
-class HTTPRequest(object):
+class HTTPResponse(object):
     def __init__(self, code=200, body=""):
         self.code = code
         self.body = body
@@ -75,13 +75,13 @@ class HTTPClient(object):
         self.sock.sendall("")
 
         # print request output
-        
-        return HTTPRequest(code, body)
+
+        return HTTPResponse(code, body)
 
     def POST(self, url, args=None):
         code = 500
         body = ""
-        return HTTPRequest(code, body)
+        return HTTPResponse(code, body)
 
     def command(self, url, command="GET", args=None):
         if (command == "POST"):
@@ -96,8 +96,9 @@ if __name__ == "__main__":
         help()
         sys.exit(1)
     elif (len(sys.argv) == 3):
-        print client.command( sys.argv[1], sys.argv[2] )
+        print client.command( sys.argv[2], sys.argv[1] )
     else:
         print client.command( command, sys.argv[1] )    
 
 # test commit
+        print client.command( sys.argv[1] )   
