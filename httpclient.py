@@ -34,14 +34,17 @@ class HTTPResponse(object):
 
 class HTTPClient(object):
     
-    def __init__():
+    def __init__(self):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         
     #def get_host_port(self,url):
 
-    def connect(self, host, port=12345):
+    def connect(self, host, port):
         # use sockets!
-        self.socket.connect((host, port))
+        if (not port):
+            self.sock.connect((host, 80))
+        else:
+            self.sock.connect((host, port))
         
         return None
 
@@ -60,6 +63,7 @@ class HTTPClient(object):
         done = False
         while not done:
             part = sock.recv(1024)
+            print part
             if (part):
                 buffer.extend(part)
             else:
@@ -70,11 +74,27 @@ class HTTPClient(object):
         code = 500
         body = ""
 
-        self.connect(url)
-        # format request
-        self.sock.sendall("")
+        print ("Got URL: %s" % url)
+        host, port, path = self.parse_url(url)
+        print (host, port, path)
 
-        # print request output
+        if (host == "http://127.0.0.1"):
+            host = "127.0.0.1"
+            
+        self.connect(host, port)
+        
+        request = self.format_request("GET", host, port, path)
+        
+        print request
+        
+        self.sock.sendall(request)
+        
+        response = self.recvall(self.sock)
+        
+        # format response
+        
+        # print response to output
+        print response
 
         return HTTPResponse(code, body)
 
@@ -88,17 +108,67 @@ class HTTPClient(object):
             return self.POST( url, args )
         else:
             return self.GET( url, args )
-    
+
+    # returns the hostname, port number, and path of an URL string
+    # host: string
+    # port: int
+    # path: string
+    def parse_url(self, url):
+        host = None
+        port = None
+        path = None
+        
+        if (url[0:7] == "http://"):
+            host = url[7:]
+        else:
+            host = url
+            
+        # url may still include port and path
+        
+        if ("/" in host):
+            index = host.index("/")
+            path = host[index:]
+            host = host[0:index]
+            # the url for host + port (possibly) should be in the var host
+
+        # port may still be in url
+        
+        if (":" in host):
+            index = host.index(":")
+            port = int(host[index+1:])
+            host = host[0:index]
+
+        host = "http://" + host
+
+        if (not path):
+            path = "/"
+            
+        return host, port, path
+
+    def format_request(self, command, host, port, path):
+        request_template = "GET {path_var} HTTP/1.1\r\n" \
+                           "Host: {host_var}\r\n" \
+                           "Connection: keep-alive\r\n\r\n"
+        
+        if (command == "GET"):
+            if (port):
+                request = request_template.format(path_var = path,
+                                                  host_var = host+":" \
+                                                  +str(port))
+            else:
+                request = request_template.format(path_var = path,
+                                                  host_var = host)
+
+        return request
+
 if __name__ == "__main__":
     client = HTTPClient()
     command = "GET"
+    print sys.argv
     if (len(sys.argv) <= 1):
         help()
         sys.exit(1)
     elif (len(sys.argv) == 3):
         print client.command( sys.argv[2], sys.argv[1] )
     else:
-        print client.command( command, sys.argv[1] )    
-
-# test commit
-        print client.command( sys.argv[1] )   
+        print client.command( command, sys.argv[1] )
