@@ -24,6 +24,8 @@ import re
 # you may use urllib to encode data appropriately
 import urllib
 
+import time
+
 def help():
     print "httpclient.py [GET/POST] [URL]\n"
 
@@ -49,25 +51,32 @@ class HTTPClient(object):
         return None
 
     def get_code(self, data):
-        return None
+        code = data.split("\r\n")[0].split(" ")[1]
+        return code
 
-    def get_headers(self,data):
-        return None
+    def get_headers(self, data):
+        headers = data.split("\r\n\r\n")[0]
+        return headers
 
     def get_body(self, data):
-        return None
+        body = data.split("\r\n\r\n")[1]
+        return body
 
     # read everything from the socket
     def recvall(self, sock):
         buffer = bytearray()
         done = False
+        sock.settimeout(4)
         while not done:
-            part = sock.recv(1024)
-            print part
-            if (part):
-                buffer.extend(part)
+            try:
+                part = sock.recv(1024)
+            except socket.timeout, e:
+                done = True
             else:
-                done = not part
+                if (part):
+                    buffer.extend(part)
+                else:
+                    done = not part
         return str(buffer)
 
     def GET(self, url, args=None):
@@ -78,24 +87,27 @@ class HTTPClient(object):
         host, port, path = self.parse_url(url)
         print (host, port, path)
 
-        if (host == "http://127.0.0.1"):
-            host = "127.0.0.1"
-            
-        self.connect(host, port)
+        if (host == "localhost"):
+            self.connect("127.0.0.1", port)
+        else:
+            self.connect(host, port)
         
         request = self.format_request("GET", host, port, path)
         
-        print request
+        #print request
         
         self.sock.sendall(request)
-        
         response = self.recvall(self.sock)
+        self.sock.close()
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         
         # format response
-        
-        # print response to output
-        print response
+        code = int(self.get_code(response))
+        body = self.get_body(response)
 
+        # print response body to output
+        print body
+        
         return HTTPResponse(code, body)
 
     def POST(self, url, args=None):
@@ -117,12 +129,12 @@ class HTTPClient(object):
         host = None
         port = None
         path = None
-        
+
         if (url[0:7] == "http://"):
             host = url[7:]
         else:
             host = url
-            
+
         # url may still include port and path
         
         if ("/" in host):
@@ -137,8 +149,6 @@ class HTTPClient(object):
             index = host.index(":")
             port = int(host[index+1:])
             host = host[0:index]
-
-        host = "http://" + host
 
         if (not path):
             path = "/"
