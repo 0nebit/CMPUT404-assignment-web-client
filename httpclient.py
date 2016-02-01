@@ -83,9 +83,7 @@ class HTTPClient(object):
         code = 500
         body = ""
 
-        print ("Got GET URL: %s" % url)
         host, port, path = self.parse_url(url)
-        print (host, port, path)
 
         if (host == "localhost"):
             self.connect("127.0.0.1", port)
@@ -94,10 +92,10 @@ class HTTPClient(object):
         
         request = self.format_request("GET", host, port, path)
         
-        #print request
-        
         self.sock.sendall(request)
         response = self.recvall(self.sock)
+
+        # to deal with bad file descriptors
         self.sock.close()
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         
@@ -114,25 +112,19 @@ class HTTPClient(object):
         code = 500
         body = ""
 
-        print ("Got POST URL: %s" % url)
         host, port, path = self.parse_url(url)
-        print (host, port, path)
 
         if (host == "localhost"):
             self.connect("127.0.0.1", port)
         else:
             self.connect(host, port)
 
-        # modify here
         request = self.format_request("POST", host, port, path, args)
-
-        print "Request:"
-        print request
         
         self.sock.sendall(request)
         response = self.recvall(self.sock)
-        print "Response:"
-        print response
+
+        # to deal with bad file descriptors
         self.sock.close()
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         
@@ -171,15 +163,13 @@ class HTTPClient(object):
             index = host.index("/")
             path = host[index:]
             host = host[0:index]
-            # the url for host + port (possibly) should be in the var host
-
-        # port may still be in url
         
         if (":" in host):
             index = host.index(":")
             port = int(host[index+1:])
             host = host[0:index]
 
+        # default root path
         if (not path):
             path = "/"
             
