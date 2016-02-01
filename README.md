@@ -18,6 +18,8 @@ examples thus some of the code is Copyright © 2001-2013 Python
 Software Foundation; All Rights Reserved under the PSF license (GPL
 compatible) http://docs.python.org/2/library/socketserver.html
 
+httpclient.py contains contributions from https://github.com/0nebit.
+
 ## References
 - Chuan Chen
   - https://docs.python.org/2/howto/sockets.html
