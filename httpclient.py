@@ -83,7 +83,7 @@ class HTTPClient(object):
         code = 500
         body = ""
 
-        print ("Got URL: %s" % url)
+        print ("Got GET URL: %s" % url)
         host, port, path = self.parse_url(url)
         print (host, port, path)
 
@@ -113,6 +113,36 @@ class HTTPClient(object):
     def POST(self, url, args=None):
         code = 500
         body = ""
+
+        print ("Got POST URL: %s" % url)
+        host, port, path = self.parse_url(url)
+        print (host, port, path)
+
+        if (host == "localhost"):
+            self.connect("127.0.0.1", port)
+        else:
+            self.connect(host, port)
+
+        # modify here
+        request = self.format_request("POST", host, port, path, args)
+
+        print "Request:"
+        print request
+        
+        self.sock.sendall(request)
+        response = self.recvall(self.sock)
+        print "Response:"
+        print response
+        self.sock.close()
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        
+        # format response
+        code = int(self.get_code(response))
+        body = self.get_body(response)
+
+        # print response body to output
+        print body
+        
         return HTTPResponse(code, body)
 
     def command(self, url, command="GET", args=None):
@@ -155,20 +185,34 @@ class HTTPClient(object):
             
         return host, port, path
 
-    def format_request(self, command, host, port, path):
-        request_template = "GET {path_var} HTTP/1.1\r\n" \
-                           "Host: {host_var}\r\n" \
-                           "Connection: keep-alive\r\n\r\n"
-        
+    def format_request(self, command, host, port, path, args=None):
         if (command == "GET"):
-            if (port):
-                request = request_template.format(path_var = path,
-                                                  host_var = host+":" \
-                                                  +str(port))
-            else:
-                request = request_template.format(path_var = path,
-                                                  host_var = host)
+            request_template = "GET {path_var} HTTP/1.1\r\n" \
+                               "Host: {host_var}\r\n" \
+                               "Connection: keep-alive\r\n"
+        elif (command == "POST"):
+            request_template = "POST {path_var} HTTP/1.1\r\n" \
+                               "Host: {host_var}\r\n" \
+                               "Connection: keep-alive\r\n"
 
+        if (port):
+            request = request_template.format(path_var = path,
+                                              host_var = host+":"+str(port))
+        else:
+            request = request_template.format(path_var = path,
+                                              host_var = host)
+
+        if (command == "POST"):
+            request += "Content-Type: application/x-www-form-urlencoded\r\n"
+            if (isinstance(args, dict) and args.keys() != []):
+                args = urllib.urlencode(args)
+                request += "Content-Length: "+str(len(args))+"\r\n\r\n"
+                request += args+"\r\n"
+            else: # no POST data given
+                request += "Content-Length: 0\r\n"
+
+        request += "\r\n"
+        
         return request
 
 if __name__ == "__main__":

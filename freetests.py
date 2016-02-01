@@ -127,7 +127,6 @@ class TestHTTPClient(unittest.TestCase):
         self.assertTrue(req != None, "None Returned!")
         self.assertTrue(req.code == 404)
 
-    """
     def test404POST(self):
         '''Test against 404 errors'''
         MyHTTPHandler.post = nothing_available
@@ -135,7 +134,6 @@ class TestHTTPClient(unittest.TestCase):
         req = http.POST("http://%s:%d/49872398432" % (BASEHOST,BASEPORT) )
         self.assertTrue(req != None, "None Returned!")
         self.assertTrue(req.code == 404)
-    """
 
     def testGET(self):
         '''Test HTTP GET'''
@@ -148,7 +146,7 @@ class TestHTTPClient(unittest.TestCase):
         self.assertTrue(req != None, "None Returned!")
         self.assertTrue(req.code == 200)
         self.assertTrue(req.body.find(path)>=0, "Data: [%s] " % req.body)
-    
+
     # consider disabling this test until everything else works
     def testInternetGets(self):
         '''Test HTTP Get in the wild, these webservers are far less
@@ -177,7 +175,6 @@ class TestHTTPClient(unittest.TestCase):
                                 req.body.find("<body")>=0 , 
                                 "%s Data: [%s] " % (url,req.body))
 
-    """
     def testPOST(self):
         '''Test HTTP POST with an echo server'''
         MyHTTPHandler.post = echo_post
@@ -199,7 +196,6 @@ class TestHTTPClient(unittest.TestCase):
             self.assertTrue(args[key] == outargs[key][0], "Key [%s] not found" % key)
         for key in outargs:
             self.assertTrue(args[key] == outargs[key][0], "Key [%s] not found" % key)
-    """
     
     @classmethod
     def tearDownClass(self):        
